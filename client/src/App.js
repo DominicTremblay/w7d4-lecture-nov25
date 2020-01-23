@@ -4,24 +4,28 @@ import NavBar from './NavBar';
 import ChatBar from './ChatBar';
 import MessageList from './MessageList';
 import lib from './lib/messages';
+import useSocket from './hooks/useSocket';
 
 function App() {
-  const [messages, setMessages] = useState(lib.messages);
+  const { state } = useSocket('ws://localhost:3001');
+
+  //const [messages, setMessages] = useState(lib.messages);
   const [currentUser, setCurrentUser] = useState({ name: 'Anonymous' });
 
   // Sending message from the chat to the server
   const sendMessage = message => {
     // Create a new message object
     const newMessage = {
-      id: Math.random()
-        .toString(36)
-        .substr(2, 6),
-      type: 'incomingMessage',
+      type: 'postMessage',
       content: message,
       username: currentUser.name,
     };
 
-    setMessages([...messages, newMessage]);
+    //setMessages([...messages, newMessage]);
+
+    // send the object to the socket server
+
+    state.socket.send(JSON.stringify(newMessage));
   };
 
   const updateUser = username => {
@@ -36,13 +40,13 @@ function App() {
 
     // updating the username in the state
     setCurrentUser({ name: username });
-    setMessages([...messages, newNotification]);
+    //setMessages([...messages, newNotification]);
   };
 
   return (
     <div>
       <NavBar />
-      <MessageList messages={messages} />
+      <MessageList messages={state.messages} />
       <ChatBar
         username={currentUser.name}
         sendMessage={sendMessage}
